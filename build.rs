@@ -7,8 +7,9 @@ use std::fs;
 use std::path::Path;
 
 fn main() {
-    // Only rerun if ts_runtime.rs changes
+    // Rerun if source or template changes
     println!("cargo::rerun-if-changed=src/ts_runtime.rs");
+    println!("cargo::rerun-if-changed=types/fresh.d.ts.template");
 
     if let Err(e) = generate_typescript_types() {
         eprintln!("Warning: Failed to generate TypeScript types: {}", e);
@@ -568,37 +569,10 @@ fn generate_typescript_types() -> Result<(), Box<dyn std::error::Error>> {
         categories.get_mut(category).unwrap().push(op);
     }
 
-    // Generate TypeScript
-    let mut output = String::new();
-    output.push_str(
-        r#"/**
- * Fresh Editor TypeScript Plugin API
- *
- * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated from src/ts_runtime.rs by build.rs
- *
- * This file provides type definitions for the Fresh editor's TypeScript plugin system.
- * Plugins have access to the global `editor` object which provides methods to:
- * - Query editor state (buffers, cursors, viewports)
- * - Modify buffer content (insert, delete text)
- * - Add visual decorations (overlays, highlighting)
- * - Interact with the editor UI (status messages, prompts)
- */
-
-declare global {
-  /**
-   * Global editor API object available to all TypeScript plugins
-   */
-  const editor: EditorAPI;
-}
-
-/**
- * Buffer identifier (unique numeric ID)
- */
-type BufferId = number;
-
-"#,
-    );
+    // Generate TypeScript - start with template header
+    let template = fs::read_to_string("types/fresh.d.ts.template")
+        .expect("Failed to read types/fresh.d.ts.template");
+    let mut output = template;
 
     // Add interface definitions from structs
     for struct_info in &structs {

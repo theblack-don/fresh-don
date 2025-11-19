@@ -27,3 +27,4 @@ perf.data
 perf.data.old
 *.snap.new
 \#*#
+types/fresh.d.ts

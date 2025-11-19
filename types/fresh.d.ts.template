@@ -1,0 +1,60 @@
+/**
+ * Fresh Editor TypeScript Plugin API
+ *
+ * This file provides type definitions for the Fresh editor's TypeScript plugin system.
+ * Plugins have access to the global `editor` object which provides methods to:
+ * - Query editor state (buffers, cursors, viewports)
+ * - Modify buffer content (insert, delete text)
+ * - Add visual decorations (overlays, highlighting)
+ * - Interact with the editor UI (status messages, prompts)
+ *
+ * Note: types/fresh.d.ts is auto-generated from this template and src/ts_runtime.rs
+ *
+ * ## Core Concepts
+ *
+ * ### Buffers
+ * A buffer holds text content and may or may not be associated with a file.
+ * Each buffer has a unique numeric ID that persists for the editor session.
+ * Buffers track their content, modification state, cursor positions, and path.
+ * All text operations (insert, delete, read) use byte offsets, not character indices.
+ *
+ * ### Splits
+ * A split is a viewport pane that displays a buffer. The editor can have multiple
+ * splits arranged in a tree layout. Each split shows exactly one buffer, but the
+ * same buffer can be displayed in multiple splits. Use split IDs to control which
+ * pane displays which buffer.
+ *
+ * ### Virtual Buffers
+ * Special buffers created by plugins to display structured data like search results,
+ * diagnostics, or git logs. Virtual buffers support text properties (metadata attached
+ * to text ranges) that plugins can query when the user selects a line. Unlike normal
+ * buffers, virtual buffers are typically read-only and not backed by files.
+ *
+ * ### Text Properties
+ * Metadata attached to text ranges in virtual buffers. Each entry has text content
+ * and a properties object with arbitrary key-value pairs. Use `getTextPropertiesAtCursor`
+ * to retrieve properties at the cursor position (e.g., to get file/line info for "go to").
+ *
+ * ### Overlays
+ * Visual decorations applied to buffer text without modifying content. Overlays can
+ * change text color and add underlines. Use overlay IDs to manage them; prefix IDs
+ * enable batch removal (e.g., "lint:" prefix for all linter highlights).
+ *
+ * ### Modes
+ * Keybinding contexts that determine how keypresses are interpreted. Each buffer has
+ * a mode (e.g., "normal", "insert", "special"). Custom modes can inherit from parents
+ * and define buffer-local keybindings. Virtual buffers typically use custom modes.
+ */
+
+declare global {
+  /**
+   * Global editor API object available to all TypeScript plugins
+   */
+  const editor: EditorAPI;
+}
+
+/**
+ * Buffer identifier (unique numeric ID)
+ */
+type BufferId = number;
+
