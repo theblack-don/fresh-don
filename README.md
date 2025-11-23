@@ -21,7 +21,22 @@ This is a completely free and open source project, not owned by any commerical c
 
 ## Installation
 
+### Pre-built binaries (recommended)
+
+Download the latest release for your platform from the [releases page](https://github.com/sinelaw/fresh/releases).
+
+### From crates.io
+
 ```bash
+cargo install fresh-editor
+fresh [file]
+```
+
+### From source
+
+```bash
+git clone https://github.com/sinelaw/fresh.git
+cd fresh
 cargo build --release
 ./target/release/fresh [file]
 ```
