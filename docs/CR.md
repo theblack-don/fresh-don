@@ -7,6 +7,7 @@
 - ~~src/input/multi_cursor.rs — duplicate add-cursor helpers~~ → Extracted shared helpers (get_cursor_line_info, cursor_position_on_line, success_result, adjust_position_for_newline)
 - ~~src/input/actions.rs:1400+ — repeated collect-and-apply patterns~~ → Extracted `apply_deletions` helper (eliminated 8 duplicate 7-line blocks)
 - ~~src/primitives/highlighter.rs:530 — `highlight_color` ~150 lines~~ → Converted to data-driven lookup with `DEFAULT_HIGHLIGHT_COLORS` and `TYPESCRIPT_HIGHLIGHT_COLORS` arrays
+- ~~src/primitives/ansi.rs:135 — `parse_sgr_params` ~150 lines~~ → Refactored with `STANDARD_COLORS`/`BRIGHT_COLORS` arrays and extracted `parse_extended_color` helper
 
 ## Large Functions
 - src/view/ui/split_rendering.rs:1135 — `render_view_lines` is ~750 lines; consider breaking into smaller helpers for different rendering concerns.
@@ -20,7 +21,6 @@
 - src/config.rs:566 — `default_menus` is a 420-line literal definition. Consider moving menu data to structured config or a table to make changes easier to diff/test and to avoid bloating code with data.
 - src/view/viewport.rs:521 — `ensure_visible` runs ~230 lines of layout math and clamping in one method; breaking into smaller helpers (e.g., horizontal/vertical logic, scroll computations) would make correctness checks and future changes safer.
 - src/input/keybindings.rs:1196 — `format_action` spans ~200 lines mirroring `from_str`; another sign a data-driven action registry would reduce duplication and risk of drift.
-- src/primitives/ansi.rs:135 — `parse_sgr_params` is a 150+ line parser built as one function; consider splitting handling for color vs modifier codes to simplify reasoning and reduce risk of missing cases.
 - src/view/ui/view_pipeline.rs:134 — `next` is a 160+ line iterator step that handles multiple line types and wrapping; decomposing per-case helpers would make it easier to verify wrapping and newline behaviors.
 - src/model/buffer.rs:575 — `get_text_range_mut` is a 160+ line method with intertwined chunk handling, file streaming, and cache management. The dense control flow increases the risk of off-by-one or range bugs; extract helpers per buffer variant (loaded vs unloaded) and centralize bounds checks.
 - src/services/plugins/runtime.rs:1861/1967/2066/2143/2159/etc. — repeated `pending_responses.lock().unwrap()` (and other mutex `unwrap()`s) in ops will panic if the mutex is poisoned by a plugin panic. These should handle poisoning and return an error to the plugin rather than crashing the runtime.
