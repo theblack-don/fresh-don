@@ -152,14 +152,9 @@ impl BufferMetadata {
             .ok()
             .and_then(|u| u.as_str().parse::<lsp_types::Uri>().ok());
 
-        // Compute display name (project-relative if possible, otherwise just filename)
-        let display_name = path
-            .strip_prefix(working_dir)
-            .ok()
-            .and_then(|rel_path| rel_path.to_str())
-            .or_else(|| path.to_str())
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| "[Unknown]".to_string());
+        // Compute display name (project-relative when under working_dir, else absolute path).
+        // Use canonicalized forms first to handle macOS /var -> /private/var differences.
+        let display_name = Self::display_name_for_path(&path, working_dir);
 
         Self {
             kind: BufferKind::File {
@@ -172,6 +167,36 @@ impl BufferMetadata {
             read_only: false,
             binary: false,
         }
+    }
+
+    /// Compute display name relative to working_dir when possible, otherwise absolute
+    fn display_name_for_path(path: &Path, working_dir: &Path) -> String {
+        // Canonicalize working_dir to normalize platform-specific prefixes
+        let canonical_working_dir = working_dir
+            .canonicalize()
+            .unwrap_or_else(|_| working_dir.to_path_buf());
+
+        // Try to canonicalize the file path; if it fails (e.g., new file), fall back to absolute
+        let absolute_path = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            // If we were given a relative path, anchor it to working_dir
+            canonical_working_dir.join(path)
+        };
+        let canonical_path = absolute_path
+            .canonicalize()
+            .unwrap_or_else(|_| absolute_path.clone());
+
+        // Prefer canonical comparison first, then raw prefix as a fallback
+        let relative = canonical_path
+            .strip_prefix(&canonical_working_dir)
+            .or_else(|_| path.strip_prefix(working_dir))
+            .ok()
+            .and_then(|rel| rel.to_str().map(|s| s.to_string()));
+
+        relative
+            .or_else(|| canonical_path.to_str().map(|s| s.to_string()))
+            .unwrap_or_else(|| "[Unknown]".to_string())
     }
 
     /// Create metadata for a virtual buffer (not backed by a file)
