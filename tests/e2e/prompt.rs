@@ -34,7 +34,8 @@ fn test_prompt_rendering() {
 #[test]
 fn test_prompt_input_handling() {
     use crossterm::event::{KeyCode, KeyModifiers};
-    let mut harness = EditorTestHarness::new(80, 24).unwrap();
+    // Use harness with temp project so file paths are relative
+    let mut harness = EditorTestHarness::with_temp_project(80, 24).unwrap();
 
     // Trigger the open file prompt with Ctrl+O
     harness
@@ -76,7 +77,8 @@ fn test_prompt_input_handling() {
 #[test]
 fn test_prompt_cancel() {
     use crossterm::event::{KeyCode, KeyModifiers};
-    let mut harness = EditorTestHarness::new(80, 24).unwrap();
+    // Use harness with temp project so file paths are relative
+    let mut harness = EditorTestHarness::with_temp_project(80, 24).unwrap();
 
     // Trigger the open file prompt
     harness
@@ -85,7 +87,7 @@ fn test_prompt_cancel() {
     harness.render().unwrap();
     harness.assert_screen_contains("Open:");
 
-    // Type some text
+    // Type some text (relative path)
     harness.type_text("test.txt").unwrap();
     harness.assert_screen_contains("test.txt");
 
@@ -144,40 +146,25 @@ fn test_open_file_workflow() {
 /// Test opening a non-existent file creates an unsaved buffer
 #[test]
 fn test_open_nonexistent_file() {
-    use crossterm::event::{KeyCode, KeyModifiers};
-    use tempfile::TempDir;
 
-    // Create a temporary directory for the test
-    let temp_dir = TempDir::new().unwrap();
-    let new_file_path = temp_dir.path().join("new_file.txt");
+    // Use harness with temp project so file paths are relative
+    let mut harness = EditorTestHarness::with_temp_project(80, 24).unwrap();
+    let project_dir = harness.project_dir().unwrap();
+    let new_file_path = project_dir.join("new_file.txt");
 
-    let mut harness = EditorTestHarness::new(80, 24).unwrap();
-
-    // Trigger the open file prompt
-    harness
-        .send_key(KeyCode::Char('o'), KeyModifiers::CONTROL)
-        .unwrap();
-
-    // Type the path to a non-existent file
-    let path_str = new_file_path.to_str().unwrap();
-    harness.type_text(path_str).unwrap();
-
-    // Confirm with Enter
-    harness
-        .send_key(KeyCode::Enter, KeyModifiers::NONE)
-        .unwrap();
-    harness.render().unwrap();
+    // Open non-existent file directly (via open_file, not file picker)
+    harness.open_file(&new_file_path).unwrap();
 
     // Should NOT show an error - should open as unsaved buffer
     harness.assert_screen_not_contains("Error opening file");
 
-    // Should show the filename in the status bar
+    // Should show the filename in the tab/status bar
     harness.assert_screen_contains("new_file.txt");
 
     // Buffer should be empty
     assert_eq!(harness.get_buffer_content().unwrap(), "");
 
-    // Should show "Opened" message (may be truncated in status bar)
+    // Should show "Opened" message
     harness.assert_screen_contains("Opened");
 }
 
@@ -186,31 +173,17 @@ fn test_open_nonexistent_file() {
 fn test_open_nonexistent_file_edit_and_save() {
     use crossterm::event::{KeyCode, KeyModifiers};
     use std::fs;
-    use tempfile::TempDir;
 
-    // Create a temporary directory for the test
-    let temp_dir = TempDir::new().unwrap();
-    let new_file_path = temp_dir.path().join("created_file.txt");
+    // Use harness with temp project so file paths are relative
+    let mut harness = EditorTestHarness::with_temp_project(80, 24).unwrap();
+    let project_dir = harness.project_dir().unwrap();
+    let new_file_path = project_dir.join("created_file.txt");
 
     // Verify file doesn't exist yet
     assert!(!new_file_path.exists());
 
-    let mut harness = EditorTestHarness::new(80, 24).unwrap();
-
-    // Trigger the open file prompt
-    harness
-        .send_key(KeyCode::Char('o'), KeyModifiers::CONTROL)
-        .unwrap();
-
-    // Type the path to a non-existent file
-    let path_str = new_file_path.to_str().unwrap();
-    harness.type_text(path_str).unwrap();
-
-    // Confirm with Enter
-    harness
-        .send_key(KeyCode::Enter, KeyModifiers::NONE)
-        .unwrap();
-    harness.render().unwrap();
+    // Open non-existent file directly (via open_file, not file picker)
+    harness.open_file(&new_file_path).unwrap();
 
     // Should open successfully
     harness.assert_screen_not_contains("Error");

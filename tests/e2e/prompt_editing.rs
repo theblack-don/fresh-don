@@ -253,7 +253,8 @@ fn test_open_file_delete_word_backward() {
 /// Test that editing actions work consistently across different prompt types
 #[test]
 fn test_editing_actions_consistency() {
-    let mut harness = EditorTestHarness::new(80, 24).unwrap();
+    // Use harness with temp project so file paths are relative
+    let mut harness = EditorTestHarness::with_temp_project(80, 24).unwrap();
 
     // Test in multiple prompt contexts to ensure consistency
 
