@@ -24,6 +24,6 @@ global-artifacts-jobs = ["./linux-packages"]
 # A GitHub repo to push Homebrew formulas to
 tap = "sinelaw/homebrew-fresh"
 # Publish jobs to run in CI
-publish-jobs = ["homebrew"]
-# Post-announce jobs to run in CI
-post-announce-jobs = ["./aur-publish"]
+publish-jobs = ["homebrew", "npm"]
+# Post-announce jobs to run in CI (after release is created)
+post-announce-jobs = ["./aur-publish", "./cargo-publish"]
