@@ -63,6 +63,12 @@ Download the `.rpm` file from the [releases page](https://github.com/sinelaw/fre
 sudo rpm -i fresh-editor-*.rpm
 ```
 
+### Arch Linux ([AUR](https://aur.archlinux.org/packages/fresh-editor))
+
+```bash
+yay -S fresh-editor
+```
+
 ### Other pre-built binaries
 
 Download the latest release for your platform from the [releases page](https://github.com/sinelaw/fresh/releases).

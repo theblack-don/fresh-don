@@ -351,3 +351,12 @@ jobs:
         with:
           persist-credentials: false
           submodules: recursive
+
+  custom-aur-publish:
+    needs:
+      - plan
+      - announce
+    uses: ./.github/workflows/aur-publish.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit

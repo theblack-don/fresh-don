@@ -1,0 +1,84 @@
+# Publish to AUR after a release is created.
+# Called by cargo-dist as a post-announce job.
+name: Publish AUR Package
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+  workflow_dispatch:  # Manual trigger for testing
+
+jobs:
+  publish-aur:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    if: ${{ !fromJson(inputs.plan).announcement_is_prerelease }}
+    steps:
+      - name: Install dependencies
+        run: pacman -Sy --noconfirm base-devel git jq openssh curl xz
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(echo '${{ inputs.plan }}' | jq -r '.announcement_tag' | sed 's/^v//')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download tarball and compute checksum
+        id: checksum
+        run: |
+          URL="https://github.com/sinelaw/fresh/releases/download/v${{ steps.version.outputs.version }}/fresh-editor-x86_64-unknown-linux-gnu.tar.xz"
+          echo "Downloading $URL"
+          curl -fsSL "$URL" -o tarball.tar.xz
+          SHA256=$(sha256sum tarball.tar.xz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "Computed SHA256: $SHA256"
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          cat >> ~/.ssh/config << EOF
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur
+            User aur
+          EOF
+
+      - name: Clone AUR repo
+        run: |
+          git clone ssh://aur@aur.archlinux.org/fresh-editor.git aur-repo
+
+      - name: Update PKGBUILD
+        working-directory: aur-repo
+        run: |
+          sed -i "s/^pkgver=.*/pkgver=${{ steps.version.outputs.version }}/" PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          # Update the sha256sum (first one in the array, keeping LICENSE as SKIP)
+          sed -i 's/^sha256sums=.*/sha256sums=("${{ steps.checksum.outputs.sha256 }}" "SKIP")/' PKGBUILD
+          echo "Updated PKGBUILD:"
+          cat PKGBUILD
+
+      - name: Regenerate .SRCINFO
+        working-directory: aur-repo
+        run: |
+          makepkg --printsrcinfo > .SRCINFO
+          echo "Generated .SRCINFO:"
+          cat .SRCINFO
+
+      - name: Commit and push
+        working-directory: aur-repo
+        run: |
+          git config user.name "${{ secrets.AUR_USERNAME }}"
+          git config user.email "${{ secrets.AUR_EMAIL }}"
+          git add PKGBUILD .SRCINFO
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update to ${{ steps.version.outputs.version }}"
+            git push
+            echo "Pushed update to AUR"
+          fi
