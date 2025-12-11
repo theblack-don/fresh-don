@@ -549,7 +549,9 @@ impl Editor {
 
     /// Handle file explorer expanded to path
     pub(super) fn handle_file_explorer_expanded_to_path(&mut self, mut view: FileTreeView) {
-        tracing::trace!("handle_file_explorer_expanded_to_path: restoring file_explorer after async expand");
+        tracing::trace!(
+            "handle_file_explorer_expanded_to_path: restoring file_explorer after async expand"
+        );
         view.update_scroll_for_selection();
         self.file_explorer = Some(view);
         self.file_explorer_sync_in_progress = false;
