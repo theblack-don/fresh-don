@@ -1,5 +1,51 @@
 # Release Notes
 
+## 0.1.45
+
+### Features
+
+* **Settings UI**: New graphical settings editor accessible via View menu or command palette. Features:
+  - Two-panel layout with categories on left and settings on right
+  - Fuzzy search to quickly find settings
+  - Full keyboard navigation (Tab cycles through panels, arrow keys navigate items)
+  - Mouse support with scrolling, scrollbar dragging, and hover indicators
+  - Dropdown, number input, text list, and map editing controls
+  - Reset to default functionality for individual settings
+  - Confirmation dialog when discarding unsaved changes
+  - Help overlay showing keyboard shortcuts
+
+* **Default/Reset Color Support**: Theme colors can now use "Default" or "Reset" values for terminal transparency. The theme editor plugin shows these special colors with a "∅" placeholder swatch. Terminal background and foreground can inherit from the user's terminal emulator settings.
+
+* **Flatpak Packaging**: Added Flatpak support for Linux installation (#340). Flatpak bundles are now included in releases.
+
+### Bug Fixes
+
+* **File Permissions Loss on Save**: Fixed file permissions/mode bits being lost when saving files (#329). Executable scripts and other special permissions are now preserved.
+
+* **Polling File Watcher**: Replaced inotify/FSEvents-based file watching with a simple polling approach (#321). This fixes "too many open files" errors on large projects. Configurable via `auto_revert_poll_interval_ms` (default 2s) and `file_tree_poll_interval_ms` (default 3s).
+
+* **Terminal Input Capture**: Fixed terminal capturing keyboard input when the Settings UI is opened while a terminal split is focused.
+
+* **Search Result Scrolling**: Fixed settings UI not scrolling to show selected search results.
+
+### Configuration
+
+* **Memory Limit**: Changed `max_memory_mb` to `max_memory_percent` (default 50%) for consistent behavior across machines with different RAM.
+
+### Packaging
+
+* **AUR**: Updated package names to match conventions (fresh-editor vs fresh-editor-bin). Added `--syncdeps` to makepkg commands (#343).
+
+### Internal
+
+* **TimeSource Abstraction**: Added TimeSource trait for testability, making time-dependent behavior deterministic in tests (issue #314).
+
+* **Test Reliability**: Replaced thread::sleep with testable time source in e2e tests. Fixed flaky tests on macOS and Windows.
+
+* **Dependency Updates**: Updated deno_core, deno_error, actions/upload-artifact, actions/download-artifact, and actions/setup-node.
+
+---
+
 ## 0.1.44
 
 ### Features
