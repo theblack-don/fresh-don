@@ -201,6 +201,42 @@ To prevent LSP servers from consuming too many resources, Fresh can limit their 
 
 For more information on how to configure resource limits, see the `docs/PROCESS_LIMITS.md` file.
 
+## macOS Keys Config
+
+### Configuring Shift + Arrow Key Shortcuts in Terminal.app
+
+Follow these steps to map **Shift + Up** and **Shift + Down** to specific escape sequences in your macOS Terminal.
+
+---
+
+### Step-by-Step Instructions
+
+1.  **Open Settings**: Launch Terminal and go to **Terminal** > **Settings** (or press `Cmd + ,`).
+2.  **Navigate to Keyboard**: Click the **Profiles** tab, then select the **Keyboard** sub-tab.
+3.  **Add First Shortcut (Cursor Up)**:
+    * Click the **Plus (+)** icon at the bottom left of the list.
+    * **Key**: Select `Cursor Up`.
+    * **Modifier**: Select `Shift`.
+    * **Action**: Select `Send Text`.
+    * **Input**: Type `\033[1;2A`
+    * Click **OK**.
+4.  **Add Second Shortcut (Cursor Down)**:
+    * Click the **Plus (+)** icon again.
+    * **Key**: Select `Cursor Down`.
+    * **Modifier**: Select `Shift`.
+    * **Action**: Select `Send Text`.
+    * **Input**: Type `\033[1;2B`
+    * Click **OK**.
+
+---
+
+### Configuration Summary
+
+| Shortcut | Key | Modifier | Action | Escape Sequence |
+| :--- | :--- | :--- | :--- | :--- |
+| **Shift + Up** | Cursor Up | Shift | Send Text | `\033[1;2A` |
+| **Shift + Down** | Cursor Down | Shift | Send Text | `\033[1;2B` |
+
 ## Advanced Topics
 
 ### Visual Regression Testing
