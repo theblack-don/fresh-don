@@ -136,7 +136,7 @@ install_fedora() {
     log_info "Downloading $URL..."
     curl -sL "$URL" -o temp_install.rpm
     log_info "Installing via rpm..."
-    sudo rpm -i temp_install.rpm
+    sudo rpm -U temp_install.rpm
     rm temp_install.rpm
 }
 
