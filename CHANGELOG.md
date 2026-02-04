@@ -4,25 +4,17 @@
 
 ### Features
 
-* **Text Encoding Support**: Detect and convert files in UTF-8, UTF-16 LE/BE, Latin-1, Windows-1252, Windows-1250, GBK, Shift-JIS, EUC-KR, and GB18030. Encoding shown in status bar (clickable to change). "Reload with Encoding..." command in File menu. Confirmation prompt for large files with non-resynchronizable encodings (#488).
+* **Text Encoding Support**: Detect and convert files in UTF-8, UTF-16 LE/BE, Latin-1, Windows-1252, Windows-1250, GBK, Shift-JIS, EUC-KR, and GB18030. Encoding shown in status bar (clickable to change). "Reload with Encoding..." command in File menu. Confirmation prompt for large files with non-resynchronizable encodings.
 
 * **Encoding Selection in File Browser**: Toggle "Detect Encoding" with Alt+E when opening files. When disabled, prompts for manual encoding selection.
 
 * **Bundle Package Type**: New package type containing multiple languages, plugins, and themes in a single package. Shown with "B" tag in package manager.
 
-* **Code Tour Plugin**: JSON-driven codebase walkthrough system. Define tours in `.fresh-tour.json` with step-by-step navigation, visual highlighting, and explanatory text.
-
 ### Bug Fixes
 
 * Fixed scrollbar and mouse wheel scrolling not working with line wrap enabled.
 
-* Fixed scrollbar thumb drag jumping to mouse position instead of smooth dragging.
-
 * Fixed AltGr character input not working on Windows (#762).
-
-* Fixed crash when opening large files with non-resynchronizable encodings from CLI.
-
-* Fixed UTF-8 files (especially Chinese text) misdetected as Windows-1250 due to truncated samples.
 
 * Fixed custom themes not appearing in "Select Theme" on macOS due to incorrect config path resolution.
 
@@ -30,15 +22,11 @@
 
 * Fixed language packs being installed to plugins directory instead of languages directory.
 
-* Fixed prompt context keybindings (Alt+E) not overriding global menu mnemonics.
-
 ### Internal
 
 * Refactored config path handling to pass DirectoryContext via call chain instead of static methods.
 
 * Added shadow model property-based tests for TextBuffer.
-
-* Fixed i18n stack overflow on Windows by using minify_key and larger stack size.
 
 * Bumped tree-sitter (0.26.5), actions/checkout (v6), actions/upload-pages-artifact (v4) (@dependabot).
 
