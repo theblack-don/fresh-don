@@ -116,7 +116,7 @@ impl Editor {
                 let cwd = handle.and_then(|h| h.cwd());
                 let shell = handle
                     .map(|h| h.shell().to_string())
-                    .unwrap_or_else(crate::services::terminal::detect_shell);
+                    .unwrap_or_else(|| crate::services::terminal::detect_shell(None));
                 let log_path = self
                     .terminal_log_files
                     .get(&terminal_id)
@@ -668,6 +668,8 @@ impl Editor {
             terminal.cwd.clone(),
             Some(log_path.clone()),
             Some(backing_path.clone()),
+            None, // No initial command for session restore
+            None, // No shell override for session restore
         ) {
             Ok(id) => id,
             Err(e) => {

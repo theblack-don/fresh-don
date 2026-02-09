@@ -63,6 +63,8 @@ impl Editor {
             Some(self.working_dir.clone()),
             Some(log_path.clone()),
             backing_path_for_spawn,
+            None,                               // No initial command for regular terminal open
+            self.config.terminal.shell.clone(), // Use configured shell override if set
         ) {
             Ok(terminal_id) => {
                 // Track log file path (use actual ID in case it differs)
@@ -116,6 +118,153 @@ impl Editor {
                     t!("terminal.failed_to_open", error = e.to_string()).to_string(),
                 );
                 tracing::error!("Failed to open terminal: {}", e);
+            }
+        }
+    }
+
+    /// Open a file in an external editor within a terminal
+    ///
+    /// This spawns a new terminal and immediately launches the configured external editor
+    /// with the specified file. The editor command is sent to the terminal after a brief delay
+    /// to ensure the shell is ready.
+    ///
+    /// # Arguments
+    /// * `path` - The file path to open in the external editor
+    /// * `editor_cmd` - The external editor command (e.g., "hx", "nvim", "vim")
+    ///
+    /// # Returns
+    /// The buffer ID of the created terminal buffer, or an error if spawning failed
+    pub fn open_terminal_with_file(
+        &mut self,
+        path: &std::path::Path,
+        editor_cmd: &str,
+    ) -> anyhow::Result<BufferId> {
+        // Get the current split dimensions for the terminal size
+        let (cols, rows) = self.get_terminal_dimensions();
+
+        // Set up async bridge for terminal manager if not already done
+        if let Some(ref bridge) = self.async_bridge {
+            self.terminal_manager.set_async_bridge(bridge.clone());
+        }
+
+        // Prepare persistent storage paths under the user's data directory
+        let terminal_root = self.dir_context.terminal_dir_for(&self.working_dir);
+        let _ = self.filesystem.create_dir_all(&terminal_root);
+
+        // Precompute paths using the next terminal ID
+        let predicted_terminal_id = self.terminal_manager.next_terminal_id();
+        let log_path =
+            terminal_root.join(format!("fresh-terminal-{}.log", predicted_terminal_id.0));
+        let backing_path =
+            terminal_root.join(format!("fresh-terminal-{}.txt", predicted_terminal_id.0));
+
+        // Stash backing path now so buffer creation can reuse it
+        self.terminal_backing_files
+            .insert(predicted_terminal_id, backing_path.clone());
+
+        // Resolve the file path (make absolute if relative)
+        let resolved_path = if path.is_relative() {
+            self.working_dir.join(path)
+        } else {
+            path.to_path_buf()
+        };
+
+        // Build the command to open the file in the external editor
+        // Quote the path to handle spaces and special characters
+        let path_str = resolved_path.display().to_string();
+        let quoted_path =
+            if path_str.contains(' ') || path_str.contains('\t') || path_str.contains('"') {
+                // Simple quoting: wrap in double quotes and escape existing double quotes
+                format!("\"{}\"", path_str.replace('"', "\\\""))
+            } else {
+                path_str
+            };
+        let initial_command = format!("{} {}", editor_cmd, quoted_path);
+
+        // Get shell override from config if set
+        let shell_override = self.config.terminal.shell.clone();
+
+        // Spawn terminal with the initial command
+        match self.terminal_manager.spawn(
+            cols,
+            rows,
+            Some(self.working_dir.clone()),
+            Some(log_path.clone()),
+            Some(backing_path.clone()),
+            Some(initial_command),
+            shell_override,
+        ) {
+            Ok(terminal_id) => {
+                // Track log file path
+                let actual_log_path = log_path.clone();
+                self.terminal_log_files
+                    .insert(terminal_id, actual_log_path.clone());
+
+                // If predicted differs, move backing path entry
+                if terminal_id != predicted_terminal_id {
+                    self.terminal_backing_files.remove(&predicted_terminal_id);
+                    let backing_path =
+                        terminal_root.join(format!("fresh-terminal-{}.txt", terminal_id.0));
+                    self.terminal_backing_files
+                        .insert(terminal_id, backing_path);
+                }
+
+                // Create a buffer for this terminal
+                let buffer_id = self.create_terminal_buffer_attached(
+                    terminal_id,
+                    self.split_manager.active_split(),
+                );
+
+                // Switch to the terminal buffer
+                self.set_active_buffer(buffer_id);
+
+                // Enable terminal mode
+                self.terminal_mode = true;
+                self.key_context = crate::input::keybindings::KeyContext::Terminal;
+
+                // Resize terminal to match actual split content area
+                self.resize_visible_terminals();
+
+                // Set status message showing which editor opened
+                let editor_name = editor_cmd.split_whitespace().next().unwrap_or(editor_cmd);
+                let filename = path
+                    .file_name()
+                    .map(|f| f.to_string_lossy().to_string())
+                    .unwrap_or_else(|| path.display().to_string());
+                self.set_status_message(format!("Opening {} in {}...", filename, editor_name));
+
+                tracing::info!(
+                    "Opened terminal {:?} with external editor {} for file {:?}",
+                    terminal_id,
+                    editor_cmd,
+                    path
+                );
+
+                // Store metadata that this is an external editor session
+                // This will be used for tab naming and auto-close functionality
+                if let Some(metadata) = self.buffer_metadata.get_mut(&buffer_id) {
+                    metadata.is_external_editor = true;
+                    metadata.external_editor_command = Some(editor_cmd.to_string());
+                    metadata.external_editor_file = Some(path.to_path_buf());
+                    // Update display name to show "Editor: filename"
+                    metadata.display_name = format!(
+                        "{}: {}",
+                        editor_name
+                            .chars()
+                            .next()
+                            .map(|c| c.to_uppercase().to_string())
+                            .unwrap_or_default()
+                            + &editor_name[1..].to_lowercase(),
+                        filename
+                    );
+                }
+
+                Ok(buffer_id)
+            }
+            Err(e) => {
+                self.set_status_message(format!("Failed to open external editor: {}", e));
+                tracing::error!("Failed to open terminal with external editor: {}", e);
+                Err(anyhow::anyhow!("Failed to open external editor: {}", e))
             }
         }
     }

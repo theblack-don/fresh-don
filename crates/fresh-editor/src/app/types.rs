@@ -116,6 +116,15 @@ pub struct BufferMetadata {
     /// For file-backed buffers, recovery ID is computed from the path hash.
     /// For unnamed buffers, this is generated once and reused across auto-saves.
     pub recovery_id: Option<String>,
+
+    /// Whether this buffer is running an external editor (e.g., helix, vim, nvim)
+    pub is_external_editor: bool,
+
+    /// The external editor command (e.g., "hx", "nvim", "vim")
+    pub external_editor_command: Option<String>,
+
+    /// The file being edited by the external editor
+    pub external_editor_file: Option<PathBuf>,
 }
 
 impl BufferMetadata {
@@ -171,6 +180,9 @@ impl BufferMetadata {
             lsp_opened_with: HashSet::new(),
             hidden_from_tabs: false,
             recovery_id: None,
+            is_external_editor: false,
+            external_editor_command: None,
+            external_editor_file: None,
         }
     }
 
@@ -190,6 +202,9 @@ impl BufferMetadata {
             lsp_opened_with: HashSet::new(),
             hidden_from_tabs: false,
             recovery_id: None,
+            is_external_editor: false,
+            external_editor_command: None,
+            external_editor_file: None,
         }
     }
 
@@ -228,6 +243,9 @@ impl BufferMetadata {
             lsp_opened_with: HashSet::new(),
             hidden_from_tabs: false,
             recovery_id: None,
+            is_external_editor: false,
+            external_editor_command: None,
+            external_editor_file: None,
         }
     }
 
@@ -334,6 +352,9 @@ impl BufferMetadata {
             lsp_opened_with: HashSet::new(),
             hidden_from_tabs: false,
             recovery_id: None,
+            is_external_editor: false,
+            external_editor_command: None,
+            external_editor_file: None,
         }
     }
 
@@ -351,6 +372,9 @@ impl BufferMetadata {
             lsp_opened_with: HashSet::new(),
             hidden_from_tabs: true,
             recovery_id: None,
+            is_external_editor: false,
+            external_editor_command: None,
+            external_editor_file: None,
         }
     }
 

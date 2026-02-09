@@ -140,6 +140,8 @@ impl TerminalManager {
     /// * `cwd` - Optional working directory (defaults to current directory)
     /// * `log_path` - Optional path for raw PTY log (for session restore)
     /// * `backing_path` - Optional path for rendered scrollback (incremental streaming)
+    /// * `initial_command` - Optional command to execute immediately after spawning (e.g., "hx /path/to/file")
+    /// * `shell_override` - Optional shell to use instead of auto-detecting
     ///
     /// # Returns
     /// The terminal ID if successful
@@ -150,6 +152,8 @@ impl TerminalManager {
         cwd: Option<std::path::PathBuf>,
         log_path: Option<std::path::PathBuf>,
         backing_path: Option<std::path::PathBuf>,
+        initial_command: Option<String>,
+        shell_override: Option<String>,
     ) -> Result<TerminalId, String> {
         let id = TerminalId(self.next_id);
         self.next_id += 1;
@@ -179,8 +183,8 @@ impl TerminalManager {
                     }
                 })?;
 
-            // Detect shell
-            let shell = detect_shell();
+            // Detect shell (use override if provided)
+            let shell = detect_shell(shell_override);
             tracing::info!("Spawning terminal with shell: {}", shell);
 
             // Build command
@@ -235,6 +239,18 @@ impl TerminalManager {
                 .master
                 .take_writer()
                 .map_err(|e| format!("Failed to get PTY writer: {}", e))?;
+
+            // Send initial command if provided (e.g., for opening external editor)
+            if let Some(cmd) = initial_command {
+                // Small delay to ensure shell is ready, then send command
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                let cmd_with_newline = format!("{cmd}\n");
+                if let Err(e) = master.write_all(cmd_with_newline.as_bytes()) {
+                    tracing::warn!("Failed to send initial command to terminal: {}", e);
+                } else {
+                    tracing::info!("Sent initial command to terminal: {}", cmd);
+                }
+            }
 
             let mut reader = pty_pair
                 .master
@@ -514,8 +530,21 @@ impl Drop for TerminalManager {
     }
 }
 
-/// Detect the user's shell
-pub fn detect_shell() -> String {
+/// Detect the user's shell, with optional override
+///
+/// # Arguments
+/// * `override_shell` - Optional shell path to use instead of auto-detecting
+///
+/// # Returns
+/// The shell path to use
+pub fn detect_shell(override_shell: Option<String>) -> String {
+    // Use override if provided
+    if let Some(shell) = override_shell {
+        if !shell.is_empty() {
+            return shell;
+        }
+    }
+
     // Try $SHELL environment variable first
     if let Ok(shell) = std::env::var("SHELL") {
         if !shell.is_empty() {
@@ -575,7 +604,13 @@ mod tests {
 
     #[test]
     fn test_detect_shell() {
-        let shell = detect_shell();
+        let shell = detect_shell(None);
         assert!(!shell.is_empty());
+    }
+
+    #[test]
+    fn test_detect_shell_with_override() {
+        let shell = detect_shell(Some("/bin/zsh".to_string()));
+        assert_eq!(shell, "/bin/zsh");
     }
 }

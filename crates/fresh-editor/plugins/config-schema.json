@@ -92,7 +92,11 @@
       "description": "Terminal settings",
       "$ref": "#/$defs/TerminalConfig",
       "default": {
-        "jump_to_end_on_output": true
+        "jump_to_end_on_output": true,
+        "shell": null,
+        "external_editor": null,
+        "use_external_editor": false,
+        "auto_close_on_exit": true
       }
     },
     "keybindings": {
@@ -157,6 +161,11 @@
           "https://github.com/sinelaw/fresh-plugins-registry"
         ]
       }
+    },
+    "auto_modal_mode": {
+      "description": "Automatically enable modal editing mode on startup\nOptions: \"none\" (default), \"vi\", \"helix\"\nWhen set to \"vi\" or \"helix\", the corresponding modal editing plugin\nwill be automatically activated when Fresh starts",
+      "type": "string",
+      "default": "none"
     }
   },
   "$defs": {
@@ -167,7 +176,8 @@
         "dark",
         "light",
         "high-contrast",
-        "nostalgia"
+        "nostalgia",
+        "system"
       ]
     },
     "LocaleOptions": {
@@ -535,6 +545,32 @@
       "properties": {
         "jump_to_end_on_output": {
           "description": "When viewing terminal scrollback and new output arrives,\nautomatically jump back to terminal mode (default: true)",
+          "type": "boolean",
+          "default": true
+        },
+        "shell": {
+          "description": "Shell to use for terminal sessions (default: auto-detect from $SHELL)",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "external_editor": {
+          "description": "External editor command to use when opening files (e.g., \"hx\", \"nvim\", \"vim\")\nWhen set and use_external_editor is true, files will open in a terminal\nwith this editor instead of in the built-in editor.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "use_external_editor": {
+          "description": "Whether to use the external editor when opening files (default: false)",
+          "type": "boolean",
+          "default": false
+        },
+        "auto_close_on_exit": {
+          "description": "Automatically close terminal when the external editor exits (default: true)",
           "type": "boolean",
           "default": true
         }

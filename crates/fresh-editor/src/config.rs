@@ -873,12 +873,34 @@ pub struct TerminalConfig {
     /// automatically jump back to terminal mode (default: true)
     #[serde(default = "default_true")]
     pub jump_to_end_on_output: bool,
+
+    /// Shell to use for terminal sessions (default: auto-detect from $SHELL)
+    #[serde(default)]
+    pub shell: Option<String>,
+
+    /// External editor command to use when opening files (e.g., "hx", "nvim", "vim")
+    /// When set and use_external_editor is true, files will open in a terminal
+    /// with this editor instead of in the built-in editor.
+    #[serde(default)]
+    pub external_editor: Option<String>,
+
+    /// Whether to use the external editor when opening files (default: false)
+    #[serde(default)]
+    pub use_external_editor: bool,
+
+    /// Automatically close terminal when the external editor exits (default: true)
+    #[serde(default = "default_true")]
+    pub auto_close_on_exit: bool,
 }
 
 impl Default for TerminalConfig {
     fn default() -> Self {
         Self {
             jump_to_end_on_output: true,
+            shell: None,
+            external_editor: None,
+            use_external_editor: false,
+            auto_close_on_exit: true,
         }
     }
 }

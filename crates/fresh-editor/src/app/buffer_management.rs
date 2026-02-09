@@ -27,7 +27,20 @@ impl Editor {
     ///
     /// If the file doesn't exist, creates an unsaved buffer with that filename.
     /// Saving the buffer will create the file.
+    ///
+    /// If `use_external_editor` is enabled in the terminal config and an external editor
+    /// is configured, the file will be opened in a terminal with that editor instead.
     pub fn open_file(&mut self, path: &Path) -> anyhow::Result<BufferId> {
+        // Check if we should use external editor
+        if self.config.terminal.use_external_editor {
+            if let Some(editor) = self.config.terminal.external_editor.clone() {
+                if !editor.is_empty() {
+                    // Use external editor via terminal
+                    return self.open_terminal_with_file(path, &editor);
+                }
+            }
+        }
+
         let buffer_id = self.open_file_no_focus(path)?;
 
         // Check if this was an already-open buffer or a new one

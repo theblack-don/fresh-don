@@ -3793,6 +3793,9 @@ impl Editor {
             lsp_opened_with: std::collections::HashSet::new(),
             hidden_from_tabs: false,
             recovery_id: None,
+            is_external_editor: false,
+            external_editor_command: None,
+            external_editor_file: None,
         };
         self.buffer_metadata.insert(buffer_id, metadata);
 
@@ -3868,6 +3871,9 @@ impl Editor {
             lsp_opened_with: std::collections::HashSet::new(),
             hidden_from_tabs: false,
             recovery_id: None,
+            is_external_editor: false,
+            external_editor_command: None,
+            external_editor_file: None,
         };
         self.buffer_metadata.insert(buffer_id, metadata);
 

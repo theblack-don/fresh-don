@@ -283,12 +283,22 @@ impl Merge for PartialFileBrowserConfig {
 #[serde(default)]
 pub struct PartialTerminalConfig {
     pub jump_to_end_on_output: Option<bool>,
+    pub shell: Option<String>,
+    pub external_editor: Option<String>,
+    pub use_external_editor: Option<bool>,
+    pub auto_close_on_exit: Option<bool>,
 }
 
 impl Merge for PartialTerminalConfig {
     fn merge_from(&mut self, other: &Self) {
         self.jump_to_end_on_output
             .merge_from(&other.jump_to_end_on_output);
+        self.shell.merge_from(&other.shell);
+        self.external_editor.merge_from(&other.external_editor);
+        self.use_external_editor
+            .merge_from(&other.use_external_editor);
+        self.auto_close_on_exit
+            .merge_from(&other.auto_close_on_exit);
     }
 }
 
@@ -584,6 +594,10 @@ impl From<&TerminalConfig> for PartialTerminalConfig {
     fn from(cfg: &TerminalConfig) -> Self {
         Self {
             jump_to_end_on_output: Some(cfg.jump_to_end_on_output),
+            shell: cfg.shell.clone(),
+            external_editor: cfg.external_editor.clone(),
+            use_external_editor: Some(cfg.use_external_editor),
+            auto_close_on_exit: Some(cfg.auto_close_on_exit),
         }
     }
 }
@@ -594,6 +608,16 @@ impl PartialTerminalConfig {
             jump_to_end_on_output: self
                 .jump_to_end_on_output
                 .unwrap_or(defaults.jump_to_end_on_output),
+            shell: self.shell.or_else(|| defaults.shell.clone()),
+            external_editor: self
+                .external_editor
+                .or_else(|| defaults.external_editor.clone()),
+            use_external_editor: self
+                .use_external_editor
+                .unwrap_or(defaults.use_external_editor),
+            auto_close_on_exit: self
+                .auto_close_on_exit
+                .unwrap_or(defaults.auto_close_on_exit),
         }
     }
 }

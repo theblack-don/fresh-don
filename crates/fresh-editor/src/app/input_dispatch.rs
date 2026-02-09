@@ -21,12 +21,14 @@ impl Editor {
     /// `None` if not in terminal mode or if a modal is active.
     pub fn dispatch_terminal_input(&mut self, event: &KeyEvent) -> Option<InputResult> {
         // Skip if we're in a prompt/popup (those need to handle keys normally)
+        // Also skip if file browser/file explorer is active
         let in_modal = self.is_prompting()
             || self.active_state().popups.is_visible()
             || self.menu_state.active_menu.is_some()
             || self.settings_state.as_ref().is_some_and(|s| s.visible)
             || self.calibration_wizard.is_some()
-            || self.keybinding_editor.is_some();
+            || self.keybinding_editor.is_some()
+            || self.file_open_state.is_some(); // File browser takes precedence over terminal
 
         if in_modal {
             return None;
