@@ -1289,6 +1289,16 @@ impl Editor {
                     crate::services::plugins::hooks::HookArgs::EditorInitialized,
                 );
             }
+            
+            // Auto-enable modal editing mode if configured
+            let auto_modal = &editor.config.auto_modal_mode;
+            if auto_modal == "vi" || auto_modal == "vim" {
+                tracing::info!("Auto-enabling vi mode on startup");
+                let _ = editor.handle_action(crate::input::keybindings::Action::PluginAction("vi_mode_toggle".to_string()));
+            } else if auto_modal == "helix" || auto_modal == "hx" {
+                tracing::info!("Auto-enabling helix mode on startup");
+                let _ = editor.handle_action(crate::input::keybindings::Action::PluginAction("hx_mode_toggle".to_string()));
+            }
         }
 
         Ok(editor)

@@ -14,6 +14,7 @@ pub const THEME_NOSTALGIA: &str = "nostalgia";
 pub const THEME_DRACULA: &str = "dracula";
 pub const THEME_NORD: &str = "nord";
 pub const THEME_SOLARIZED_DARK: &str = "solarized-dark";
+pub const THEME_SYSTEM: &str = "system";
 
 /// A builtin theme with its name, pack, and embedded JSON content.
 pub struct BuiltinTheme {

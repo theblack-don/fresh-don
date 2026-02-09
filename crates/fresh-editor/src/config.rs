@@ -16,7 +16,7 @@ pub struct ThemeName(pub String);
 impl ThemeName {
     /// Built-in theme options shown in the settings dropdown
     pub const BUILTIN_OPTIONS: &'static [&'static str] =
-        &["dark", "light", "high-contrast", "nostalgia"];
+        &["dark", "light", "high-contrast", "nostalgia", "system"];
 }
 
 impl Deref for ThemeName {
@@ -420,6 +420,17 @@ pub struct Config {
     /// Package manager settings for plugin/theme installation
     #[serde(default)]
     pub packages: PackagesConfig,
+
+    /// Automatically enable modal editing mode on startup
+    /// Options: "none" (default), "vi", "helix"
+    /// When set to "vi" or "helix", the corresponding modal editing plugin
+    /// will be automatically activated when Fresh starts
+    #[serde(default = "default_auto_modal_mode")]
+    pub auto_modal_mode: String,
+}
+
+fn default_auto_modal_mode() -> String {
+    "none".to_string()
 }
 
 fn default_keybinding_map_name() -> KeybindingMapName {
@@ -1346,6 +1357,7 @@ impl Default for Config {
             warnings: WarningsConfig::default(),
             plugins: HashMap::new(), // Populated when scanning for plugins
             packages: PackagesConfig::default(),
+            auto_modal_mode: default_auto_modal_mode(),
         }
     }
 }

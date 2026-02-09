@@ -1,0 +1,25 @@
+{
+  "en": {
+    "cmd": {
+      "toggle_hx_mode": "Toggle Helix mode",
+      "toggle_hx_mode_desc": "Enable/disable Helix-style selection-based modal editing",
+      "toggle_hx_file_explorer_mode": "Toggle Helix file explorer mode",
+      "toggle_hx_file_explorer_mode_desc": "Switch between normal and file explorer navigation mode"
+    },
+    "status": {
+      "enabled": "Helix mode enabled",
+      "disabled": "Helix mode disabled"
+    },
+    "mode": {
+      "normal": "NORMAL",
+      "insert": "INSERT",
+      "goto": "GOTO",
+      "select": "SEL",
+      "view": "VIEW",
+      "match": "MATCH",
+      "window": "WINDOW",
+      "space": "SPACE",
+      "file-explorer": "EXPLORER"
+    }
+  }
+}

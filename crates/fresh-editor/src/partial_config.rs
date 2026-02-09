@@ -89,6 +89,7 @@ pub struct PartialConfig {
     pub warnings: Option<PartialWarningsConfig>,
     pub plugins: Option<HashMap<String, PartialPluginConfig>>,
     pub packages: Option<PartialPackagesConfig>,
+    pub auto_modal_mode: Option<String>,
 }
 
 impl Merge for PartialConfig {
@@ -117,6 +118,7 @@ impl Merge for PartialConfig {
 
         self.active_keybinding_map
             .merge_from(&other.active_keybinding_map);
+        self.auto_modal_mode.merge_from(&other.auto_modal_mode);
     }
 }
 
@@ -746,6 +748,7 @@ impl From<&crate::config::Config> for PartialConfig {
                 }
             },
             packages: Some(PartialPackagesConfig::from(&cfg.packages)),
+            auto_modal_mode: Some(cfg.auto_modal_mode.clone()),
         }
     }
 }
@@ -851,6 +854,9 @@ impl PartialConfig {
                 .packages
                 .map(|e| e.resolve(&defaults.packages))
                 .unwrap_or_else(|| defaults.packages.clone()),
+            auto_modal_mode: self
+                .auto_modal_mode
+                .unwrap_or_else(|| defaults.auto_modal_mode.clone()),
         }
     }
 }
